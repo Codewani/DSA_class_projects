@@ -14,7 +14,7 @@ def category(grade):
     else:
         return "Needs Improvement"
 
-#Function to sadd students
+#Function to add students
 def add_student():
     if len(students) == 10:
         print("The system has reached the maximum number of students")
