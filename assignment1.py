@@ -43,10 +43,10 @@ num_students = int(input("How many students do you want to add? "))
 for i in range(num_students):
     add_student()
 
-#Adding the table format
+#Adding the table format using the .ljust() for alignment
 print('\nName        Grade       Category')
 print("----------------------------------")
-#print("Name      Grade       category")
+
 for i in range(len(students)):
     print(f"{students[i].ljust(12)} {str(grades[i]).ljust(10)} {categories[i]}") # .ljust() for alignment
 
