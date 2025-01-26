@@ -20,8 +20,10 @@ def add_student():
     if len(students) == 10:
         print("The system has reached the maximum number of students")
         return
+        
     name = input("Enter the student's name: ")
     
+    #Ensuring users enter numeric grades
     while True:
         try:
             grade = int(input("Enter your grade: "))
@@ -36,7 +38,6 @@ def add_student():
     grades.append(grade)
     categories.append(category(grade))
 
-
 num_students = int(input("How many students do you want to add? "))
 
 for i in range(num_students):
@@ -47,9 +48,8 @@ print('\nName        Grade       Category')
 print("----------------------------------")
 #print("Name      Grade       category")
 for i in range(len(students)):
-    print(f"{students[i].ljust(12)} {str(grades[i]).ljust(10)} {categories[i]}") # ljust for alignment
+    print(f"{students[i].ljust(12)} {str(grades[i]).ljust(10)} {categories[i]}") # .ljust() for alignment
 
-    #print(f"{students[i]}    {grades[i]}    {categories[i]}")
 
 
 
