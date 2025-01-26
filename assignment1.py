@@ -1,7 +1,8 @@
+
 #Arrays to store data
 students = []
 grades = []
-cartegories = []
+categories = []
 
 #Function to categorize the grades
 def category(grade):
@@ -20,15 +21,21 @@ def add_student():
         print("The system has reached the maximum number of students")
         return
     name = input("Enter the student's name: ")
-    grade = int(input("Enter your grade: "))
-
-    while not 0 <= grade <= 100:
-        print("Error: Ensure your grade is between 0 and 100")
-        grade = int(input("Enter your grade: "))
+    
+    while True:
+        try:
+            grade = int(input("Enter your grade: "))
+            if 0 <= grade <= 100:
+                break
+            else:
+                print("Error: Ensure your grade is between 0 and 100")
+        except ValueError:
+            print("Error: Please enter a valid number for the grade.")
     
     students.append(name)
     grades.append(grade)
-    cartegories.append(category(grade))
+    categories.append(category(grade))
+
 
 num_students = int(input("How many students do you want to add? "))
 
@@ -40,7 +47,9 @@ print('\nName        Grade       Category')
 print("----------------------------------")
 #print("Name      Grade       category")
 for i in range(len(students)):
-    print(f"{students[i]}    {grades[i]}    {cartegories[i]}")
+    print(f"{students[i].ljust(12)} {str(grades[i]).ljust(10)} {categories[i]}") # ljust for alignment
+
+    #print(f"{students[i]}    {grades[i]}    {categories[i]}")
 
 
 
