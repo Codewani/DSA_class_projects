@@ -13,7 +13,7 @@ def validation():
                 continue
         except ValueError:
             print("\nPlease enter a valid numeric value for the price.")
-            price = int(input("Enter item's price: "))
+            price = int(input("\nEnter item's price: "))
             continue
 
         budget -= price
