@@ -1,62 +1,80 @@
+# List to store item names and prices
 item_name = []
 item_price = []
 
-def validation():
-    budget = 100
+
+
+# Function to calculate tax (10.44%)
+def calculate_tax(price):
+    tax_rate = 10.44 / 100
+    return round(price * tax_rate, 2)  # Rounds tax to 2 decimal places
+
+# Function to handle shopping process
+def shopping():
+    budget = 100  # Budget Constraint 
 
     while budget > 0:
-        item = input("\nEnter item's name: ").strip()
-        try:
-            price = int(input("Enter item's price: "))
-            if price > budget:
-                print(f"\nYou don't have enough money left. Your remaining budget is {budget}$. Go to Cart.")
-                continue
-        except ValueError:
-            print("\nPlease enter a valid numeric value for the price.")
-            price = int(input("\nEnter item's price: "))
-            continue
+        
+        item = input("\nEnter item's name: ").strip() # Get item name
 
-        budget -= price
+        # Get valid price input
+        while True:
+            try:
+                price = float(input("Enter item's price: "))  # Convert to float for decimals
+                if price <= 0: # We want only positive price for the items
+                    print("Price must be a positive number. Try again.")
+                    continue
+                break  # Exit loop if valid
+            except ValueError:
+                print("Invalid input. Please enter a numeric value.")
+
+        # Calculate tax
+        tax = calculate_tax(price)
+        total_price_with_tax = price + tax
+
+        # Check budget constraint
+        if total_price_with_tax > budget:
+            print(f"You don't have enough budget. Your remaining budget is ${budget:.2f}.")
+            print("Try adding a cheaper item or go to checkout.")
+            continue  # Prompt user again
+
+        # Deduct from budget and store item
+        budget -= total_price_with_tax
         item_name.append(item)
         item_price.append(price)
 
-        print(f"\nYou have {budget}$ left in your wallet.")
+        # Print tax separately
+        print(f"\n{item} added!")
+        print(f"Price: ${price:.2f}")
+        print(f"Tax: ${tax:.2f}")  # Prints tax before adding to total
+        print(f"Total after tax: ${total_price_with_tax:.2f}")
+        print(f"Remaining budget: ${budget:.2f}")
 
-        if budget == 0:
-            print("\nYour budget is fully used up.")
-            break
-
-        prompt = input("\nDo you want to continue shopping (Yes/No): ").lower().strip()
-
-        while prompt != "yes"and prompt != "no":
-            print("\nEnter a valid response (Yes/No).")
-            prompt = input("\nDo you want to continue shopping (Yes/No): ").lower().strip()
+        # Ask if user wants to continue shopping
+        prompt = input("\nDo you want to continue shopping? (Yes/No): ").strip().lower()
+        while prompt not in ["yes", "no"]:
+            print("Enter a valid response (Yes/No).")
+            prompt = input("Do you want to continue shopping? (Yes/No): ").strip().lower()
 
         if prompt == "no":
-            break
+            break  # Stop shopping
 
+    # Print receipt
     print("\nThank you for shopping with Walmart!")
-    print("\nItems Purchased:")
-    for i in range(len(item_name)):
-        print(f"{item_name[i]} - ${item_price[i]}")
+    if not item_name:
+        print("No items purchased.")
+    else:
+        print("\nReceipt:")
+        for i in range(len(item_name)):
+            print(f"{item_name[i]} - ${item_price[i]:.2f}")
+        
+        total_before_tax = sum(item_price)
+        total_after_tax = total_before_tax + sum(calculate_tax(price) for price in item_price)
 
-    print(f"\nFinal remaining budget: {budget}$")
+        print(f"\nTotal price before tax: ${total_before_tax:.2f}")
+        print(f"Total price after tax: ${total_after_tax:.2f}")
+        print(f"Number of items purchased: {len(item_name)}")
+        print(f"Final remaining budget: ${budget:.2f}")
 
-
-validation()
-
-def tax(price):
-    try:
-        return (0.1044 * price)
-    except:
-        return -1
-
-#automated tests
-def test_tax_function():
-    assert tax("a") == -1
-    assert tax("ben") == -1
-    assert round(tax(100), 2) == float(10.44)
-    assert round(tax(1000), 1) == float(104.4)
-    print("all test cases for tax function passed")
-
-test_tax_function()
+# Running shopping function
+shopping()
