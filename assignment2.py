@@ -175,13 +175,15 @@ def shopping():
         
         print(f"\nHere are the {category} in our store: ")
         tabulate_products({f"{category}":products[category]})
-        item = input("Enter the index of the item you want to buy: ")
-        while not item.isdigit() or int(item) >= len(products[category]):
-            print("Invalid item index. Please enter a valid index.")
+        item = input("Enter the index of the item you want to buy or ('C'/'c') if you want to choose a different category: ")
+        while (item != 'C' and item != 'c') and (not item.isdigit() or int(item) >= len(products[category])):
+            print("\nINVALID ITEM INDEX. PLEASE ENTER A VALID INDEX")
             print(f"\nHere are the {category} in our store: ")
             tabulate_products({f"{category}":products[category]})
-            item = input("Enter the index of the item you want to buy: ")
-        
+            item = input("Enter the index of the item you want to buy or ('C'/'c') if you want to choose a different category: ")
+
+        if item == 'C' or item == 'c':
+            continue
         item = int(item)
 
         quantity = input("Enter the quantity you want to buy: ")
