@@ -1,4 +1,6 @@
-LOGO = f"{'='*60}{'\n\u2732  Walmart | Save money. Live better.\n'}{'='*60}"
+LOGO = f"""{'=' * 60}
+✲  Walmart | Save money. Live better.
+{'=' * 60}"""
 products = {
     # Groceries
     "groceries": [
