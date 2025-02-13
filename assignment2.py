@@ -173,23 +173,26 @@ def shopping():
             print("Invalid category. Please choose from groceries, appliances, or clothes.")
             category = input("Enter a category (groceries, appliances, clothes): ").strip().lower()
         
+        print(f"\nHere are the {category} in our store: ")
+        tabulate_products({f"{category}":products[category]})
         item = input("Enter the index of the item you want to buy: ")
         while not item.isdigit() or int(item) >= len(products[category]):
             print("Invalid item index. Please enter a valid index.")
+            print(f"\nHere are the {category} in our store: ")
+            tabulate_products({f"{category}":products[category]})
             item = input("Enter the index of the item you want to buy: ")
         
         item = int(item)
 
         quantity = input("Enter the quantity you want to buy: ")
         while not quantity.isdigit() or int(quantity) <= 0:
-            print("Invalid quantity. Please enter a positive number.")
+            print("\nInvalid quantity. Please enter a positive number.")
             quantity = input("Enter the quantity you want to buy: ")
         quantity = int(quantity)
 
         brand = products[category][item]["brand"]
         item_name = products[category][item]["name"]
         item_price = products[category][item]["price"]
-        item_quantity = products[category][item]["quantity"]
 
         # calculate tax
         tax = calculate_tax(item_price)
