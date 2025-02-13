@@ -182,17 +182,55 @@ def shopping():
             print("\nINVALID ITEM INDEX. PLEASE ENTER A VALID INDEX")
             print(f"\nHere are the {category} in our store: ")
             tabulate_products({f"{category}":products[category]})
-            item = input("Enter the index of the item you want to buy or ('C'/'c') if you want to choose a different category: ")
+            item = input("Enter the index of the item you want to buy or ('C'/'c') if you want to choose a different category: ")# C and c are same for category change
 
         if item == 'C' or item == 'c':
             continue
         item = int(item)
+
+
+        # check if the item is available
+        available_quantity = products[category][item]["quantity"]
+        if available_quantity <= 0:
+            print("Item is out of stock.")
+            ask_continue = input("Do you want to choose a different item or category, or continue shopping? (item/category/continue): ").strip().lower()
+            if ask_continue == "item":
+                continue
+            elif ask_continue == "category":
+                continue
+            elif ask_continue == "continue":
+                break
+            else:
+                print("Invalid input. Please enter 'item', 'category', or 'continue'.")
+                continue
+
+        print(f"Available quantity for {products[category][item]['name']}: {available_quantity}")
+
 
         quantity = input("Enter the quantity you want to buy: ")
         while not quantity.isdigit() or int(quantity) <= 0:
             print("\nInvalid quantity. Please enter a positive number.")
             quantity = input("Enter the quantity you want to buy: ")
         quantity = int(quantity)
+
+         # Check if the user enter more quantity than the available qauntity
+        if quantity > available_quantity:
+            print(f"Insufficient quantity in stock. Available quantity: {available_quantity}.")
+            ask_continue = input("Do you want to continue shopping or buy less? (continue(c)/buy less(l)): ").strip().lower()
+            if ask_continue == "continue" or ask_continue == "c":
+                continue
+            elif ask_continue == "buy less" or ask_continue == "l":
+                quantity = input(f"Enter a quantity less than or equal to {available_quantity}: ")
+                while not quantity.isdigit() or int(quantity) <= 0 or int(quantity) > available_quantity:
+                    print(f"\nInvalid quantity. Please enter a positive number less than or equal to {available_quantity}.")
+                    quantity = input(f"Enter a quantity less than or equal to {available_quantity}: ")
+                quantity = int(quantity)
+            else:
+                print("Invalid input. Please enter 'continue()' or 'buy less'.")
+                continue
+
+
+ 
 
         brand = products[category][item]["brand"]
         item_name = products[category][item]["name"]
