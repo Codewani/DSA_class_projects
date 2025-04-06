@@ -136,7 +136,7 @@ def main():
             print("2. Log In")
         print("6. Exit") if cur_student else print("3. Exit") 
         
-        choice = input("Enter your choice (1-6): ")
+        choice = input("Enter your choice (1-6): ") if cur_student else input("Enter your choice (1-3): ")
         
         if not cur_student:
             if choice == '1':
@@ -176,13 +176,21 @@ def main():
             
             elif choice == '2':
                 student_id = cur_student
-                course_id = input("Enter course ID: ")
-                system.enroll_student(student_id, course_id)
+                system.view_available_courses()
+                course_id = input("Enter the course ID or 'E' to exit this page: ")
+                while course_id != 'E' and not system.enroll_student(student_id, course_id):
+                    course_id = input("Enter course ID or 'E' to exit this page: ")
+
             
             elif choice == '3':
                 student_id = cur_student
-                course_id = input("Enter course ID: ")
-                system.drop_course(student_id, course_id)
+                print("\nHere are the classes you are taking: \n")
+                system.view_student_schedule(student_id)
+                print()
+                course_id = input("Enter course ID of the course you want to drop or 'E' to exit this page: ")
+                while course_id != 'E' and not system.drop_course(student_id, course_id):
+                    print("Please Enter a course ID for a course you are enrolled in or 'E' if you have not enrolled in any courses.")
+                    course_id = input("Enter course ID or 'E' to exit this page: ")
             
             elif choice == '4':
                 student_id = cur_student
