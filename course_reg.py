@@ -218,6 +218,12 @@ class EnrollmentSystem:
         with open('enrollments.csv', 'a', newline='') as file:
             writer = csv.writer(file)
             writer.writerow([student_id, course_id, datetime.now()])
+    
+    def save_students(self):
+        with open('students.csv', 'w', newline='') as file:
+            writer = csv.writer(file)
+            for student in self.students.values():
+                writer.writerow([student.student_id, student.name, student.password, ','.join(student.registered_courses)])
       
     def update_enrollments(self):
         enrollments = []
@@ -358,12 +364,9 @@ def main():
 
             elif choice == '6':
                 cur_student = None
-            else:
+            elif choice == '7':
                 print("Thank you for using the Course Registration System!")
                 break
-            else:
-                print("Incorrect input, please select a valid option(1-6)")
-
             else:
                 print("Invalid choice. Please try again.")
         print("\n" + "-" * 60)
