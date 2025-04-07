@@ -150,6 +150,12 @@ class EnrollmentSystem:
                 print(f"Student ID: {student_id} | Course ID: {course_id} | Action: {action} | Time: {timestamp}")
         print("-" * 60)
 
+    def save_students(self):
+        with open('students.csv', 'w', newline='') as file:
+            writer = csv.writer(file)
+            for student in self.students.values():
+                writer.writerow([student.student_id, student.name, student.password, ','.join(student.registered_courses)])
+
     def save_courses(self):
         with open('courses.csv', 'w', newline='') as file:
             writer = csv.writer(file)
