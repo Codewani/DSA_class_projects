@@ -263,6 +263,9 @@ def main():
                 print("Thank you for using the Course Registration System!")
                 break
 
+            else:
+                print("Invalid choice. Please try again.")
+
         else:
             if choice == '1':
                 system.view_available_courses()
