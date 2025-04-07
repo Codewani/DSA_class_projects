@@ -296,8 +296,6 @@ def main():
             else:
                 print("Thank you for using the Course Registration System!")
                 break
-            else:
-                print("Incorrect input, please select a valid option(1-6)")
 
             else:
                 print("Invalid choice. Please try again.")
