@@ -16,7 +16,7 @@ class Student:
     def __init__(self, student_id: str, name: str, password: str):
         self.student_id = student_id
         self.name = name
-        self.password = hash_password(password)
+        self.password = password
         self.registered_courses: Set[str] = set()
 
     def __repr__(self) -> str:
@@ -54,6 +54,7 @@ class EnrollmentSystem:
         if student_id in self.students:
             print("Error: Student ID already exists")
             return False
+        hashed_password = hash_password(password)
         self.students[student_id] = Student(student_id, name, password)
         self.save_students()
         print(f"Successfully registered student: {name}")
@@ -149,13 +150,6 @@ class EnrollmentSystem:
                 print(f"Student ID: {student_id} | Course ID: {course_id} | Action: {action} | Time: {timestamp}")
         print("-" * 60)
 
-
-    def save_students(self):
-        with open('students.csv', 'w', newline='') as file:
-            writer = csv.writer(file)
-            for student in self.students.values():
-                writer.writerow([student.student_id, student.name, student.password, ','.join(student.registered_courses)])
-
     def save_courses(self):
         with open('courses.csv', 'w', newline='') as file:
             writer = csv.writer(file)
@@ -166,6 +160,22 @@ class EnrollmentSystem:
         with open('enrollments.csv', 'a', newline='') as file:
             writer = csv.writer(file)
             writer.writerow([student_id, course_id, datetime.now()])
+      
+    def update_enrollments(self):
+        enrollments = []
+        for student in self.students.values():
+            for course_id in student.registered_courses:
+                enrollments.append([student.student_id, course_id, datetime.now()])
+
+        with open('enrollments.csv', 'w', newline='') as file:
+            writer = csv.writer(file)
+            for enrollment in enrollments:
+                writer.writerow(enrollment)
+    
+    def log_enrollment_action(self, student_id: str, course_id: str, action: str):
+        with open('enrollment_history.csv', 'a', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow([student_id, course_id, action, datetime.now()])
 
     def load_data(self):
         if os.path.exists('students.csv'):
@@ -188,31 +198,20 @@ class EnrollmentSystem:
                         course.enrolled_students = set(enrolled_students.split(','))
                     self.courses[course_id] = course
 
-    def update_enrollments(self):
-        enrollments = []
-        for student in self.students.values():
-            for course_id in student.registered_courses:
-                enrollments.append([student.student_id, course_id, datetime.now()])
-
-        with open('enrollments.csv', 'w', newline='') as file:
-            writer = csv.writer(file)
-            for enrollment in enrollments:
-                writer.writerow(enrollment)
-
-    def log_enrollment_action(self, student_id: str, course_id: str, action: str):
-        with open('enrollment_history.csv', 'a', newline='') as file:
-            writer = csv.writer(file)
-            writer.writerow([student_id, course_id, action, datetime.now()])
+def show_banner():
+    print("\nGRAMBLING STATE UNIVERSITY")
+    print("=" * 60)
+    print("\nCourse Registration System")
+    print("=" * 60)
 
 def main():
     system = EnrollmentSystem()
     cur_student = None
-    print(system.students)
-    assert hash_password("1234") == hash_password("1234")
 
     while True:
-        print("\nUniversity Course Registration System")
         if cur_student:
+            print("Please select an option:")
+            print("-" * 60)
             print("1. View available courses")
             print("2. Enroll in course")
             print("3. Drop course")
@@ -221,6 +220,9 @@ def main():
             print("6. Log out")
             print("7. Exit")
         else:
+            show_banner()
+            print("Please select an option:")
+            print("-" * 60)
             print("1. Register new student")
             print("2. Log In")
             print("3. Exit")
@@ -228,6 +230,7 @@ def main():
         choice = input("Enter your choice (1-7): ") if cur_student else input("Enter your choice (1-3): ")
 
         if not cur_student:
+            show_banner()
             if choice == '1':
                 print("\nWelcome to the Sign up Page.\n")
                 student_id = input("Enter student ID: ")
@@ -243,11 +246,6 @@ def main():
                 password = input("Enter your password or 'E' to exit out of the Login page: ")
                 if password == 'E':
                     continue
-
-                if student_id in system.students:
-                    print(system.students[student_id].password)
-                    print(hash_password(password))
-
                 while student_id not in system.students or not verify_password(system.students[student_id].password, password):
                     print("The student_id and password combination you entered is not valid.")
                     student_id = input("Enter student ID or 'E' to exit out of the Login page: ")
@@ -256,10 +254,6 @@ def main():
                     password = input("Enter your password or 'E' to exit out of the Login page: ")
                     if password == 'E':
                         break
-                    if student_id in system.students:
-                        print(system.students[student_id].password)
-                        print(hash_password(password))
-
                 if student_id == 'E' or password == 'E':
                     continue
 
