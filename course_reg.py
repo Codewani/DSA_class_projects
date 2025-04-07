@@ -55,7 +55,7 @@ class EnrollmentSystem:
             print("Error: Student ID already exists")
             return False
         hashed_password = hash_password(password)
-        self.students[student_id] = Student(student_id, name, password)
+        self.students[student_id] = Student(student_id, name, hashed_password)
         self.save_students()
         print(f"Successfully registered student: {name}")
         return True
