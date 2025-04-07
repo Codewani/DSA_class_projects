@@ -12,6 +12,19 @@ def verify_password(stored_hash: str, provided_password: str) -> bool:
     """Verify a password against its hash"""
     return stored_hash == hash_password(provided_password)
 
+def parse_time_range(time_range: str):
+        parts = time_range.split('-')
+        if len(parts) != 2:
+            return None, None
+        start_str = parts[0].strip()  
+        end_str = parts[1].strip()    
+        try:
+            start_time = datetime.strptime(start_str, "%I:%M %p")
+            end_time = datetime.strptime(end_str, "%I:%M %p")
+            return start_time, end_time
+        except ValueError:
+            return None, None
+        
 class Student:
     def __init__(self, student_id: str, name: str, password: str):
         self.student_id = student_id
@@ -23,15 +36,16 @@ class Student:
         return f"Student(ID: {self.student_id}, Name: {self.name}, Password: {self.password})"
 
 class Course:
-    def __init__(self, course_id: str, name: str, instructor: str, max_students: int = 30):
+    def __init__(self, course_id: str, name: str, instructor: str, max_students: int = 30, time: str = ""):
         self.course_id = course_id
         self.name = name
         self.instructor = instructor
         self.max_students = max_students
+        self.time = time
         self.enrolled_students: Set[str] = set()
 
     def __str__(self) -> str:
-        return f"Course(ID: {self.course_id}, Name: {self.name}, Instructor: {self.instructor})"
+        return f"Course(ID: {self.course_id}, Name: {self.name}, Instructor: {self.instructor}, Time: {self.time})"
 
 class EnrollmentSystem:
     def __init__(self):
@@ -43,21 +57,53 @@ class EnrollmentSystem:
 
 
     def initialize_courses(self):
-        # Initialize some default courses
         courses = [
-            ("CS101", "Introduction to Programming", "Dr. Smith"),
-            ("CS102", "Data Structures", "Dr. Johnson"),
-            ("CS103", "Algorithms", "Dr. Williams"),
+            ("CS101", "Introduction to Programming", "Dr. Smith", 30, "10:00 AM - 11:30 AM"),
+            ("CS102", "Data Structures", "Dr. Johnson", 30, "11:00 AM - 12:30 PM"),
+            ("CS103", "Algorithms", "Dr. Williams", 30, "3:00 PM - 4:30 PM"),
+            ("CS104", "Database Systems", "Dr. Brown", 30, "10:00 AM - 11:30 AM"),
+            ("CS105", "Web Development", "Dr. Davis", 30, "1:00 PM - 2:30 PM"),
+            ("CS106", "Software Engineering", "Dr. Miller", 30, "3:00 PM - 4:30 PM"),
+            ("CS107", "Computer Networks", "Dr. Wilson", 30, "10:00 AM - 11:30 AM"),
+            ("CS108", "Operating Systems", "Dr. Moore", 30, "1:00 PM - 2:30 PM"),
+            ("CS109", "Machine Learning", "Dr. Taylor", 30, "3:00 PM - 4:30 PM")
         ]
-        for course_id, name, instructor in courses:
-            self.courses[course_id] = Course(course_id, name, instructor)
+        for course_id, name, instructor, max_students, time in courses:
+            self.courses[course_id] = Course(course_id, name, instructor, max_students, time)
+    
+    def get_time_conflict(self, student_id: str, new_course_id: str):
+        student = self.students[student_id]
+        new_course = self.courses[new_course_id]
+        
+        # If the new course has no time set, assume no conflict.
+        if not new_course.time:
+            return None
 
+        new_start, new_end = parse_time_range(new_course.time)
+        if not new_start or not new_end:
+            return None
+
+        # Check each already registered course for overlap
+        for course_id in student.registered_courses:
+            enrolled_course = self.courses[course_id]
+            if not enrolled_course.time:
+                continue
+            exist_start, exist_end = parse_time_range(enrolled_course.time)
+            if not exist_start or not exist_end:
+                continue
+            # Check for overlapping intervals:
+            if new_start < exist_end and new_end > exist_start:
+                return enrolled_course  # Return the conflicting course
+        return None
+
+
+    
     def register_student(self, student_id: str, name: str, password: str) -> bool:
         if student_id in self.students:
             print("Error: Student ID already exists")
             return False
         hashed_password = hash_password(password)
-        self.students[student_id] = Student(student_id, name, password)
+        self.students[student_id] = Student(student_id, name, hashed_password)
         self.save_students()
         print(f"Successfully registered student: {name}")
         return True
@@ -71,6 +117,7 @@ class EnrollmentSystem:
             print(f"Course ID: {course.course_id}")
             print(f"Name: {course.name}")
             print(f"Instructor: {course.instructor}")
+            print(f"Time: {course.time}")
             print(f"Available slots: {available_slots}")
             print("-" * 60)
 
@@ -93,14 +140,22 @@ class EnrollmentSystem:
         if len(course.enrolled_students) >= course.max_students:
             print("Error: Course is full")
             return False
+        
+        # Check for a time conflict using the new method.
+        conflict_course = self.get_time_conflict(student_id, course_id)
+        if conflict_course:
+            print(f"Error: Time conflict with your registered course '{conflict_course.course_id}'.")
+            print(f"'{conflict_course.course_id}' is currently held at {conflict_course.time}.")
+            return False
 
         student.registered_courses.add(course_id)
         course.enrolled_students.add(student_id)
         print(f"Successfully enrolled {student.name} in {course.name}")
         self.save_enrollment(student_id, course_id)
-        self.save_students()          # <-- Save students after enrollment
-        self.save_courses()           # <-- Save courses after enrollment
+        self.save_students()
+        self.save_courses()
         return True
+
 
     def drop_course(self, student_id: str, course_id: str) -> bool:
         if student_id not in self.students or course_id not in self.courses:
@@ -133,6 +188,7 @@ class EnrollmentSystem:
             course = self.courses[course_id]
             print(f"Course: {course.name} (ID: {course.course_id})")
             print(f"Instructor: {course.instructor}")
+            print(f"Time: {course.time}")
             print("-" * 60)
 
     def save_students(self):
@@ -145,7 +201,8 @@ class EnrollmentSystem:
         with open('courses.csv', 'w', newline='') as file:
             writer = csv.writer(file)
             for course in self.courses.values():
-                writer.writerow([course.course_id, course.name, course.instructor, course.max_students, ','.join(course.enrolled_students)])
+                writer.writerow([course.course_id, course.name, course.instructor, 
+                                course.max_students, course.time, ','.join(course.enrolled_students)])
 
     def save_enrollment(self, student_id: str, course_id: str):
         with open('enrollments.csv', 'a', newline='') as file:
@@ -158,6 +215,7 @@ class EnrollmentSystem:
                 reader = csv.reader(file)
                 for row in reader:
                     student_id, name, password, registered_courses = row
+                    # Store the password as-is, it's already hashed
                     student = Student(student_id, name, password)
                     if registered_courses:
                         student.registered_courses = set(registered_courses.split(','))
@@ -167,10 +225,16 @@ class EnrollmentSystem:
             with open('courses.csv', 'r') as file:
                 reader = csv.reader(file)
                 for row in reader:
-                    course_id, name, instructor, max_students, enrolled_students = row
-                    course = Course(course_id, name, instructor, int(max_students))
-                    if enrolled_students:
-                        course.enrolled_students = set(enrolled_students.split(','))
+                    if len(row) >= 6:  # Make sure we have at least 6 columns (including time)
+                        course_id, name, instructor, max_students, time, enrolled_students = row
+                        course = Course(course_id, name, instructor, int(max_students), time)
+                        if enrolled_students:
+                            course.enrolled_students = set(enrolled_students.split(','))
+                    else:  # Backward compatibility for files without time
+                        course_id, name, instructor, max_students, enrolled_students = row
+                        course = Course(course_id, name, instructor, int(max_students))
+                        if enrolled_students:
+                            course.enrolled_students = set(enrolled_students.split(','))
                     self.courses[course_id] = course
 
 def show_banner():
