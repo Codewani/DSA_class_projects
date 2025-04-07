@@ -1,4 +1,5 @@
 import csv
+import os
 from typing import Set
 from datetime import datetime
 
@@ -27,7 +28,10 @@ class EnrollmentSystem:
     def __init__(self):
         self.students = {}
         self.courses = {}
-        self.initialize_courses()
+        self.load_data()             # <-- Add this first to load existing students
+        if not self.courses:         # <-- Only initialize courses if no course file found
+            self.initialize_courses()
+
 
     def initialize_courses(self):
         # Initialize some default courses
@@ -44,8 +48,10 @@ class EnrollmentSystem:
             print("Error: Student ID already exists")
             return False
         self.students[student_id] = Student(student_id, name, password)
+        self.save_students()             # <-- ADD THIS LINE
         print(f"Successfully registered student: {name}")
         return True
+
 
     def view_available_courses(self):
         print("\nAvailable Courses:")
@@ -82,6 +88,8 @@ class EnrollmentSystem:
         course.enrolled_students.add(student_id)
         print(f"Successfully enrolled {student.name} in {course.name}")
         self.save_enrollment(student_id, course_id)
+        self.save_students()          # <-- Save students after enrollment
+        self.save_courses()           # <-- Save courses after enrollment
         return True
 
     def drop_course(self, student_id: str, course_id: str) -> bool:
@@ -99,6 +107,8 @@ class EnrollmentSystem:
         student.registered_courses.remove(course_id)
         course.enrolled_students.remove(student_id)
         print(f"Successfully dropped {course.name} for {student.name}")
+        self.save_students()          # <-- Save students after dropping
+        self.save_courses()           # <-- Save courses after dropping
         return True
 
     def view_student_schedule(self, student_id: str):
@@ -115,10 +125,44 @@ class EnrollmentSystem:
             print(f"Instructor: {course.instructor}")
             print("-" * 60)
 
+    def save_students(self):
+        with open('students.csv', 'w', newline='') as file:
+            writer = csv.writer(file)
+            for student in self.students.values():
+                writer.writerow([student.student_id, student.name, student.password, ','.join(student.registered_courses)])
+
+    def save_courses(self):
+        with open('courses.csv', 'w', newline='') as file:
+            writer = csv.writer(file)
+            for course in self.courses.values():
+                writer.writerow([course.course_id, course.name, course.instructor, course.max_students, ','.join(course.enrolled_students)])
+
     def save_enrollment(self, student_id: str, course_id: str):
         with open('enrollments.csv', 'a', newline='') as file:
             writer = csv.writer(file)
             writer.writerow([student_id, course_id, datetime.now()])
+
+    def load_data(self):
+        if os.path.exists('students.csv'):
+            with open('students.csv', 'r') as file:
+                reader = csv.reader(file)
+                for row in reader:
+                    student_id, name, password, registered_courses = row
+                    student = Student(student_id, name, password)
+                    if registered_courses:
+                        student.registered_courses = set(registered_courses.split(','))
+                    self.students[student_id] = student
+
+        if os.path.exists('courses.csv'):   # <-- ADD THIS PART
+            with open('courses.csv', 'r') as file:
+                reader = csv.reader(file)
+                for row in reader:
+                    course_id, name, instructor, max_students, enrolled_students = row
+                    course = Course(course_id, name, instructor, int(max_students))
+                    if enrolled_students:
+                        course.enrolled_students = set(enrolled_students.split(','))
+                    self.courses[course_id] = course
+
 
 def main():
     system = EnrollmentSystem()
