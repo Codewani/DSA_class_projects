@@ -293,7 +293,7 @@ def main():
 
             elif choice == '6':
                 cur_student = None
-            else:
+            elif choice == '7':
                 print("Thank you for using the Course Registration System!")
                 break
 
