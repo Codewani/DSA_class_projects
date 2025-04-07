@@ -48,8 +48,7 @@ class EnrollmentSystem:
         if student_id in self.students:
             print("Error: Student ID already exists")
             return False
-        hashed_password = hashlib.sha256(password.encode()).hexdigest()
-        self.students[student_id] = Student(student_id, name, hashed_password)
+        self.students[student_id] = Student(student_id, name, password)
         self.save_students()
         print(f"Successfully registered student: {name}")
         return True
@@ -200,9 +199,8 @@ def main():
                 password = input("Enter your password or 'E' to exit out of the Login page: ")
                 if password == 'E':
                     continue
-                hashed_password = hashlib.sha256(password.encode()).hexdigest()
 
-                while student_id not in system.students or hashed_password != system.students[student_id].password:
+                while student_id not in system.students or password != system.students[student_id].password:
                     print("The student_id and password combination you entered is not valid.")
                     student_id = input("Enter student ID or 'E' to exit out of the Login page: ")
                     if student_id == 'E':
@@ -210,12 +208,17 @@ def main():
                     password = input("Enter your password or 'E' to exit out of the Login page: ")
                     if password == 'E':
                         break
-                    hashed_password = hashlib.sha256(password.encode()).hexdigest()
 
                 if student_id == 'E' or password == 'E':
                     continue
 
-                cur_student = student_id        
+                cur_student = student_id
+            elif choice == '3':
+                print("Thank you for using the Course Registration System!")
+                break
+            else:
+                print("Incorrect input, please select a valid option(1-6)")
+        
 
 
         else:
@@ -246,9 +249,11 @@ def main():
 
             elif choice == '5':
                 cur_student = None
-            else:
+            elif choice == '6':
                 print("Thank you for using the Course Registration System!")
                 break
+            else:
+                print("Incorrect input, please select a valid option(1-6)")
 
 if __name__ == "__main__":
     main()
