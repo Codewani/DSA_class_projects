@@ -51,10 +51,9 @@ class EnrollmentSystem:
     def __init__(self):
         self.students = {}
         self.courses = {}
-        self.load_data()             # <-- Add this first to load existing students
-        if not self.courses:         # <-- Only initialize courses if no course file found
+        self.load_data()
+        if not self.courses:
             self.initialize_courses()
-
 
     def initialize_courses(self):
         courses = [
@@ -108,7 +107,6 @@ class EnrollmentSystem:
         print(f"Successfully registered student: {name}")
         return True
 
-
     def view_available_courses(self):
         print("\nAvailable Courses:")
         print("-" * 60)
@@ -154,6 +152,7 @@ class EnrollmentSystem:
         self.save_enrollment(student_id, course_id)
         self.save_students()
         self.save_courses()
+        self.log_enrollment_action(student_id, course_id, "ENROLL")  # Log ENROLL
         return True
 
 
@@ -172,8 +171,11 @@ class EnrollmentSystem:
         student.registered_courses.remove(course_id)
         course.enrolled_students.remove(student_id)
         print(f"Successfully dropped {course.name} for {student.name}")
-        self.save_students()          # <-- Save students after dropping
-        self.save_courses()           # <-- Save courses after dropping
+
+        self.save_students()
+        self.save_courses()
+        self.update_enrollments()
+        self.log_enrollment_action(student_id, course_id, "DROP")  # Log DROP
         return True
 
     def view_student_schedule(self, student_id: str):
@@ -190,12 +192,20 @@ class EnrollmentSystem:
             print(f"Instructor: {course.instructor}")
             print(f"Time: {course.time}")
             print("-" * 60)
+    
+    def view_enrollment_history(self):
+        if not os.path.exists('enrollment_history.csv'):
+            print("No enrollment history found.")
+            return
 
-    def save_students(self):
-        with open('students.csv', 'w', newline='') as file:
-            writer = csv.writer(file)
-            for student in self.students.values():
-                writer.writerow([student.student_id, student.name, student.password, ','.join(student.registered_courses)])
+        print("\nEnrollment History:")
+        print("-" * 60)
+        with open('enrollment_history.csv', 'r') as file:
+            reader = csv.reader(file)
+            for row in reader:
+                student_id, course_id, action, timestamp = row
+                print(f"Student ID: {student_id} | Course ID: {course_id} | Action: {action} | Time: {timestamp}")
+        print("-" * 60)
 
     def save_courses(self):
         with open('courses.csv', 'w', newline='') as file:
@@ -208,6 +218,22 @@ class EnrollmentSystem:
         with open('enrollments.csv', 'a', newline='') as file:
             writer = csv.writer(file)
             writer.writerow([student_id, course_id, datetime.now()])
+      
+    def update_enrollments(self):
+        enrollments = []
+        for student in self.students.values():
+            for course_id in student.registered_courses:
+                enrollments.append([student.student_id, course_id, datetime.now()])
+
+        with open('enrollments.csv', 'w', newline='') as file:
+            writer = csv.writer(file)
+            for enrollment in enrollments:
+                writer.writerow(enrollment)
+    
+    def log_enrollment_action(self, student_id: str, course_id: str, action: str):
+        with open('enrollment_history.csv', 'a', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow([student_id, course_id, action, datetime.now()])
 
     def load_data(self):
         if os.path.exists('students.csv'):
@@ -255,17 +281,19 @@ def main():
             print("2. Enroll in course")
             print("3. Drop course")
             print("4. View student schedule")
-            print("5. Log Out")
+            print("5. View enrollment history")
+            print("6. Log out")
+            print("7. Exit")
         else:
             show_banner()
             print("Please select an option:")
             print("-" * 60)
             print("1. Register new student")
             print("2. Log In")
-        print("6. Exit") if cur_student else print("3. Exit") 
-        
-        choice = input("Enter your choice (1-6): ") if cur_student else input("Enter your choice (1-3): ")
-        
+            print("3. Exit")
+
+        choice = input("Enter your choice (1-7): ") if cur_student else input("Enter your choice (1-3): ")
+
         if not cur_student:
             show_banner()
             if choice == '1':
@@ -274,7 +302,7 @@ def main():
                 name = input("Enter student name: ")
                 password = input("Enter your password: ")
                 system.register_student(student_id, name, password)
-            
+
             elif choice == '2':
                 print("\nWelcome to the Log in Page.\n")
                 student_id = input("Enter student ID or 'E' to exit out of the Login page: ")
@@ -294,19 +322,16 @@ def main():
                 if student_id == 'E' or password == 'E':
                     continue
 
-                cur_student = student_id
+                cur_student = student_id        
+
             elif choice == '3':
                 print("Thank you for using the Course Registration System!")
                 break
-            else:
-                print("Incorrect input, please select a valid option(1-6)")
-        
-
 
         else:
             if choice == '1':
                 system.view_available_courses()
-            
+
             elif choice == '2':
                 student_id = cur_student
                 system.view_available_courses()
@@ -314,7 +339,6 @@ def main():
                 while course_id != 'E' and not system.enroll_student(student_id, course_id):
                     course_id = input("Enter course ID or 'E' to exit this page: ")
 
-            
             elif choice == '3':
                 student_id = cur_student
                 print("\nHere are the classes you are taking: \n")
@@ -324,18 +348,25 @@ def main():
                 while course_id != 'E' and not system.drop_course(student_id, course_id):
                     print("Please Enter a course ID for a course you are enrolled in or 'E' if you have not enrolled in any courses.")
                     course_id = input("Enter course ID or 'E' to exit this page: ")
-            
+
             elif choice == '4':
                 student_id = cur_student
                 system.view_student_schedule(student_id)
 
             elif choice == '5':
-                cur_student = None
+                system.view_enrollment_history()
+
             elif choice == '6':
+                cur_student = None
+            else:
                 print("Thank you for using the Course Registration System!")
                 break
             else:
                 print("Incorrect input, please select a valid option(1-6)")
+
+            else:
+                print("Invalid choice. Please try again.")
+        print("\n" + "-" * 60)
 
 if __name__ == "__main__":
     main()
