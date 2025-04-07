@@ -201,6 +201,7 @@ def main():
                 if password == 'E':
                     continue
                 hashed_password = hashlib.sha256(password.encode()).hexdigest()
+
                 while student_id not in system.students or hashed_password != system.students[student_id].password:
                     print("The student_id and password combination you entered is not valid.")
                     student_id = input("Enter student ID or 'E' to exit out of the Login page: ")
@@ -210,13 +211,11 @@ def main():
                     if password == 'E':
                         break
                     hashed_password = hashlib.sha256(password.encode()).hexdigest()
-                
+
                 if student_id == 'E' or password == 'E':
                     continue
 
-            cur_student = student_id
-
-
+                cur_student = student_id        
 
 
         else:
