@@ -4,15 +4,23 @@ import os
 from typing import Set
 from datetime import datetime
 
+def hash_password(password: str) -> str:
+    """Hash a password using SHA-256"""
+    return hashlib.sha256(password.encode()).hexdigest()
+
+def verify_password(stored_hash: str, provided_password: str) -> bool:
+    """Verify a password against its hash"""
+    return stored_hash == hash_password(provided_password)
+
 class Student:
     def __init__(self, student_id: str, name: str, password: str):
         self.student_id = student_id
         self.name = name
-        self.password = password
+        self.password = hash_password(password)
         self.registered_courses: Set[str] = set()
 
-    def __str__(self) -> str:
-        return f"Student(ID: {self.student_id}, Name: {self.name})"
+    def __repr__(self) -> str:
+        return f"Student(ID: {self.student_id}, Name: {self.name}, Password: {self.password})"
 
 class Course:
     def __init__(self, course_id: str, name: str, instructor: str, max_students: int = 30):
@@ -168,6 +176,9 @@ class EnrollmentSystem:
 def main():
     system = EnrollmentSystem()
     cur_student = None
+    print(system.students)
+    assert hash_password("1234") == hash_password("1234")
+
     while True:
         print("\nUniversity Course Registration System")
         if cur_student:
@@ -200,7 +211,11 @@ def main():
                 if password == 'E':
                     continue
 
-                while student_id not in system.students or password != system.students[student_id].password:
+                if student_id in system.students:
+                    print(system.students[student_id].password)
+                    print(hash_password(password))
+
+                while student_id not in system.students or not verify_password(system.students[student_id].password, password):
                     print("The student_id and password combination you entered is not valid.")
                     student_id = input("Enter student ID or 'E' to exit out of the Login page: ")
                     if student_id == 'E':
@@ -208,6 +223,9 @@ def main():
                     password = input("Enter your password or 'E' to exit out of the Login page: ")
                     if password == 'E':
                         break
+                    if student_id in system.students:
+                        print(system.students[student_id].password)
+                        print(hash_password(password))
 
                 if student_id == 'E' or password == 'E':
                     continue
